@@ -1,0 +1,44 @@
+---
+apiVersion: "autoscaling.k8s.io/v1"
+kind: VerticalPodAutoscaler
+metadata:
+  name: stress-vpa
+spec:
+  # recommenders field can be unset when using the default recommender.
+  # When using an alternative recommender, the alternative recommender's name
+  # can be specified as the following in a list.
+  # recommenders:
+  #   - name: 'alternative'
+  updatePolicy:
+    updateMode: "Recreate"
+  targetRef:
+    apiVersion: "apps/v1"
+    kind: Deployment
+    name: stress
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stress
+spec:
+  selector:
+    matchLabels:
+      app: stress
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: stress
+    spec:
+      containers:
+      - name: stress
+        image: polinux/stress
+        resources:
+          requests:
+            cpu: 100m
+            memory: "100Mi"
+          limits:
+            cpu: 200m
+            memory: "200Mi"
+        command: ["stress"]
+        args: ["--vm", "1", "--vm-bytes", "250M"]
